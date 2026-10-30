@@ -145,27 +145,6 @@ body.landing-page .landing-highlights{grid-template-columns:repeat(3,minmax(0,1f
 }
 
 
-/* Native checkbox color selector (vanilla HTML/CSS/JS) */
-.color-picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 5px}
-.color-option{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:2px solid transparent;border-radius:50%;cursor:pointer;box-shadow:0 2px 6px #0004;transition:transform .18s ease,box-shadow .18s ease}
-.color-option:hover{transform:scale(1.06)}
-.color-option:focus-within{outline:3px solid var(--accent);outline-offset:3px}
-.color-option input{position:absolute;width:1px;height:1px;opacity:0}
-.color-option .checkmark{display:grid;place-items:center;width:22px;height:22px;border:2px solid #fff;border-radius:50%;color:#fff;font-size:15px;font-weight:900;line-height:1;opacity:0;transform:scale(.75);transition:opacity .15s ease,transform .15s ease}
-.color-option input:checked+.checkmark{opacity:1;transform:scale(1)}
-.color-option input:focus-visible+.checkmark{outline:3px solid #fff;outline-offset:4px}
-.color-option.destructive{background:#dc2626}
-.color-option.info{background:#0284c7}
-.color-option.success{background:#16a34a}
-.color-preview{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;min-height:24px}
-.color-preview .chip{display:inline-flex;align-items:center;gap:6px}.color-preview [hidden]{display:none}
-.color-preview .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.color-preview [data-color="destructive"] .dot{background:#dc2626}
-.color-preview [data-color="info"] .dot{background:#0284c7}
-.color-preview [data-color="success"] .dot{background:#16a34a}
-@media(max-width:390px){.color-picker{gap:10px}.color-option{width:42px;height:42px;flex-basis:42px}}
-@media(prefers-reduced-motion:reduce){.color-option,.color-option .checkmark{transition:none}}
-
 </style>
 </head>
 <body>
@@ -178,7 +157,6 @@ body.landing-page .landing-highlights{grid-template-columns:repeat(3,minmax(0,1f
 <div class="field"><label for="genreSearch">Genre & subgenre <span class="chip">choose one or more</span></label><input class="input catalog-search" id="genreSearch" type="search" placeholder="Search genres, e.g. isekai, cyberpunk, villainess"><div class="choice-grid" id="genreChoices" role="group" aria-label="Choose one or more genres"></div><select id="genre" multiple hidden></select><p class="smallnote">Search broad genres, niche subgenres, and cliché-friendly styles.</p></div>
 <div class="field"><label for="chapters">Total chapters <span id="chapterLabel">100</span></label><input class="input" id="chapters" type="number" min="1" max="10000" step="1" value="100"><div class="quick" id="quick"><button data-count="10">10</button><button data-count="50">50</button><button data-count="100">100</button><button data-count="250">250</button><button data-count="500">500</button><button data-count="1000">1,000</button><button data-count="2000">2,000</button><button data-count="5000">5,000</button><button data-count="10000">10,000</button></div></div>
 <div class="field"><label for="parody">Story style intensity <span id="parodyLabel">50%</span></label><input class="range" id="parody" type="range" min="0" max="100" step="5" value="50"><div class="quick"><span class="chip">0% Straightforward</span><span class="chip">50% Playful</span><span class="chip">100% Absurd</span></div></div>
-<div class="field" id="colorMarkerField"><label>Color indicators <span class="chip">toggle markers</span></label><div class="color-picker" role="group" aria-label="Choose visible color indicators"><label class="color-option destructive" title="Destructive indicator"><input type="checkbox" class="color-marker-toggle" value="destructive" aria-label="Color destructive" checked><span class="checkmark" aria-hidden="true">✓</span></label><label class="color-option info" title="Information indicator"><input type="checkbox" class="color-marker-toggle" value="info" aria-label="Color info" checked><span class="checkmark" aria-hidden="true">✓</span></label><label class="color-option success" title="Success indicator"><input type="checkbox" class="color-marker-toggle" value="success" aria-label="Color success" checked><span class="checkmark" aria-hidden="true">✓</span></label></div><p class="smallnote">Choose which status colors are visible in this workspace. Your selection is saved on this device.</p><div class="color-preview" id="colorMarkerPreview" aria-live="polite"><span class="chip" data-color="destructive"><i class="dot"></i>Alert</span><span class="chip" data-color="info"><i class="dot"></i>Info</span><span class="chip" data-color="success"><i class="dot"></i>Success</span></div></div>
 <div class="field"><label for="toneSearch">Tone <span class="chip">choose any</span></label><input class="input catalog-search" id="toneSearch" type="search" placeholder="Search tones, e.g. wholesome, grimdark, campy"><div class="choice-grid" id="toneChoices" role="group" aria-label="Choose one or more tones"></div><select id="tone" multiple hidden></select><p class="smallnote">Blend serious, silly, dramatic, heartfelt, cliché, and parody tones.</p></div>
 <div class="field"><label for="tagsSearch">Tags & tropes <span class="chip">choose any · optional</span></label><input class="input catalog-search" id="tagsSearch" type="search" placeholder="Search tags, tropes, or clichés"><div class="choice-grid" id="tagsChoices" role="group" aria-label="Choose any story tags"></div><select id="tags" multiple hidden></select><p class="smallnote">Popular tropes, archetypes, and plot devices.</p></div>
 <div class="field"><label for="parodyMode">Reference medium <span class="chip">optional</span></label><select id="parodyMode" class="input"><option value="">Original story / no specific reference</option><option>Anime / animated series</option><option>Manga / Japanese comic</option><option>Manhwa / Korean comic / webtoon</option><option>Manhua / Chinese comic</option><option>Donghua / Chinese animation</option><option>Adult manhwa (non-explicit)</option><option>Light novel / web novel</option><option>Novel / book / literary series</option><option>TV show / television series</option><option>Movie / film / cinematic universe</option><option>K-drama / Korean series</option><option>C-drama / Chinese series</option><option>J-drama / Japanese series</option><option>Western animation / cartoon</option><option>Comics / graphic novel</option><option>Webcomic / web serial</option><option>Streaming series</option><option>Reality / competition show</option><option>Tokusatsu / live-action hero show</option><option>Video game / game franchise</option><option>Visual novel / interactive fiction</option><option>Stage / musical / audio drama</option><option>Mixed media / crossover parody</option></select><p class="smallnote">Choose a medium and enter reference names to shape the story’s setting, cast, or themes.</p></div>
@@ -322,18 +300,6 @@ async function batch(){let b=state.book;if(!b||state.generating)return;state.gen
 $("chapters").addEventListener("input",()=>{$("chapterLabel").textContent=(Number($("chapters").value)||0).toLocaleString();document.querySelectorAll("[data-count]").forEach(b=>b.classList.toggle("active",Number(b.dataset.count)===Number($("chapters").value)))});
 document.querySelectorAll("[data-count]").forEach(b=>b.addEventListener("click",()=>{$("chapters").value=b.dataset.count;$("chapters").dispatchEvent(new Event("input"))}));
 $("parody").addEventListener("input",()=>{$("parodyLabel").textContent=$("parody").value+"%"});
-// Persist the native color-indicator selector locally.
-const markerInputs=[...document.querySelectorAll(".color-marker-toggle")];
-const markerPreview=$("colorMarkerPreview");
-let savedMarkers=[];try{savedMarkers=JSON.parse(localStorage.getItem("novelforge-color-markers-v1")||'["destructive","info","success"]');}catch(e){savedMarkers=["destructive","info","success"];}
-if(!Array.isArray(savedMarkers))savedMarkers=["destructive","info","success"];
-markerInputs.forEach(input=>{input.checked=savedMarkers.includes(input.value);input.addEventListener("change",()=>{
- const selected=markerInputs.filter(item=>item.checked).map(item=>item.value);
- try{localStorage.setItem("novelforge-color-markers-v1",JSON.stringify(selected));}catch(e){}
- markerPreview.querySelectorAll("[data-color]").forEach(marker=>{marker.hidden=!selected.includes(marker.dataset.color);});
-});});
-markerPreview.querySelectorAll("[data-color]").forEach(marker=>{marker.hidden=!savedMarkers.includes(marker.dataset.color);});
-
 function generationFingerprint(s){return JSON.stringify({genre:s.genre,genres:s.genres,tones:s.tones,tags:s.tags,styleIntensity:s.styleIntensity??s.parody,referenceMedium:s.parodyMode,references:s.parodySources,title:s.title,premise:s.premise,hero:s.hero,total:s.total});}
 function createUniqueNovel(s){
  const fingerprint=generationFingerprint(s);
