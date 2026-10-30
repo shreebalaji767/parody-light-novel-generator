@@ -233,7 +233,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 function settings(){let genreOptions=[...$("genre").selectedOptions];let genres=genreOptions.map(o=>o.text);let genre=genreOptions.length?genreOptions[0].value:"isekai";if(!genres.length)genres=["Isekai / Reincarnation"];let tones=[...$("tone").selectedOptions].map(o=>o.value);if(!tones.length)tones=["Adventurous"];let tags=[...$("tags").selectedOptions].map(o=>o.text);let n=Number($("chapters").value);if(!Number.isFinite(n))n=1;n=Math.max(1,Math.min(10000,Math.floor(n)));$("chapters").value=n;return {genre,genres,total:n,styleIntensity:Number($("parody").value),tone:tones[0],tones,tags,parodyMode:$("parodyMode").value,parodySource:$("parodySource").value.trim(),parodySources:$("parodySource").value.split(/[\n;,]+/).map(x=>x.trim()).filter(Boolean),title:$("title").value.trim(),premise:$("premise").value.trim(),hero:$("hero").value.trim()||"the protagonist",pov:$("pov").value,povCharacter:$("povCharacter").value.trim(),batch:n}}
 function createBook(s){let key=themeKey(s.genre),t=themes[key],title=s.title||choose(titles[key]);let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
 let book={settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),seed:(Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)),chapters:[],created:new Date().toISOString()};
-book.prologue=generateChapter(book,0);book.prologue.title="Prologue — "+title;return book}
+book.prologue=generatePrologue(book);return book}
 function chapterTitle(b,n){
  const subjects=["Ashes Beneath the Snow","The Bell at Dusk","A Promise Written in Rain","Where the Blue Lantern Waits","The Unseen Passenger","Letters from the Far Shore","The Shape of an Old Fear","A Garden Beyond Winter","The Map of Borrowed Stars","The Day the River Turned","A Name Left Unspoken","The Last Train to Morning","The Crown of Quiet Thorns","A Window Full of Thunder","The Weight of Small Decisions","The City Behind the Mist","An Echo in the Glass","The Orchard of Lost Hours","A Door Made of Starlight","The Witness in the Clocktower","The Sea Between Two Hearts","A Thousand Steps Home","The Library of Unfinished Vows","The Sound of Falling Feathers","A Shadow at the Festival","The Compass and the Flame","The Winter's Hidden Guest","A Sky Without Footprints","The Secret Under the Bridge","The Hour Before the Truth","The House That Remembered","A Candle for the Missing","The Road of Paper Moons","The Silence After the Bell","The Fox at the Crossroads","A Debt to Tomorrow","The Colour of Forgotten Names","The Last Page of Summer","A Song Beneath the Earth","The Doorway of Second Chances"];
  const playful=["A Catastrophe with Excellent Timing","The Committee of Questionable Decisions","One More Thing Went Wrong","A Very Official Disaster","The Fine Print Strikes Back","An Appointment with Chaos","The Plan Requires Snacks","This Was Not in the Manual"];
@@ -241,6 +241,40 @@ function chapterTitle(b,n){
  const used=new Set((b.chapters||[]).map(ch=>String(ch.title||"").toLowerCase()));let title="",attempt=0;
  do{title=(Number(b.settings.styleIntensity||0)>65&&n%4===0)?playful[(hash+attempt)%playful.length]:subjects[(hash+attempt*17)%subjects.length];attempt++;}while(used.has(title.toLowerCase())&&attempt<subjects.length+playful.length);
  return used.has(title.toLowerCase())?title+" — "+n:title;
+}
+function generatePrologue(b){
+ const s=b.settings||{},hero=(s.pov==="first-selected"||s.pov==="third-selected")?(s.povCharacter||s.hero||"the protagonist"):(s.hero||"the protagonist"),theme=themeKey(s.genre);
+ const seed=String(b.seed||b.title)+"|prologue";let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619);}
+ const pick=a=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return a[(t^t>>>14)>>>0];};
+ const memories={isekai:"the day the world gave me a second beginning",fantasy:"the winter the old bells stopped ringing",romance:"the afternoon I mistook a goodbye for an ordinary farewell",school:"the morning an empty desk became impossible to ignore",scifi:"the final transmission from the station",horror:"the night the house began repeating our conversations",action:"the match that ended before the final bell",cozy:"the morning the shop almost closed for good",comedy:"the day the official plan fell apart before breakfast",mixed:"the day the rules of the world quietly changed"};
+ let paragraphs=[
+ "I used to think the important moments in a person's life announced themselves. A dramatic sound, a warning, perhaps a final chance to turn back. Real life is less considerate. Most of the time, it lets you make an ordinary decision and only explains its importance afterward.",
+ "I remember "+(memories[theme]||memories.mixed)+". I remember the small details more clearly than the grand ones: the temperature of the air, the sound coming from the next room, and the thought I was trying very hard not to think.",
+ "At the time, I was living in "+(b.world||"a world full of unanswered questions")+". I had become used to its routines, its unspoken rules, and the particular kind of trouble that arrived when someone asked the wrong question. I wanted only to "+(b.goal||"find a place to belong")+". It was not an ambitious wish. That was probably why I believed it was safe.",
+ "There was a story people told about this place. Depending on who was speaking, it was a warning, a joke, or an old superstition. The details changed with every retelling, but one part never did: sooner or later, someone would have to choose between the life they understood and the truth they had avoided.",
+ "I did not consider myself that person. I had no special talent for making brave decisions, and I certainly had no plan for dealing with "+(b.foe||"the opposition")+". If anything, I had become rather good at finding reasons to wait until tomorrow.",
+ "The first sign was so small that I nearly ignored it. Something familiar was out of place. A name appeared where it should not have been; a message arrived from someone who could not have sent it; or a detail I had trusted for years turned out to be wrong. Whatever form it took, I knew one thing: someone else understood what it meant.",
+ "I asked a question. Nobody answered immediately. That silence told me more than a confession would have. The people around me were not surprised by what I had noticed. They were afraid that I had noticed it.",
+ "“You should leave it alone,” someone finally said.",
+ "I wanted to ask why. I wanted to demand an explanation, and I wanted to pretend that I was not frightened. Instead, I looked at the evidence again. It had not changed. Only my understanding of it had.",
+ "That was when I made the decision I would spend a long time trying to justify. I chose to find out what had happened, even if the answer cost me the comfortable version of my life.",
+ "I did not know then that this choice would connect me to people I had never met, expose a history that had been carefully buried, and turn an ordinary wish into something much harder to carry.",
+ "If I had known how the story would unfold, would I have chosen differently? I have asked myself that question more times than I can count. I still do not have an answer.",
+ "But I remember what happened next. I remember the sound at the door. And I remember the name written on the message that should never have reached me."
+ ];
+ const extras=[
+ "There are things people tell themselves when they are afraid. That the situation is temporary. That someone more qualified will arrive. That the safest choice is always the sensible one. I believed all of them, because believing them meant I could stay where I was.",
+ "Looking back, the clues were not hidden particularly well. I simply had no reason to connect them. A passing remark, an unfinished conversation, a familiar face avoiding my eyes—each seemed harmless until I placed them beside the others.",
+ "I remember rehearsing what I would say. The words sounded convincing in my head. When the moment came, however, my throat tightened and I managed only the simplest question. It was enough. The expression on the other person's face changed, and the room suddenly felt much smaller.",
+ "Perhaps that is how every great disaster begins: not with a roar, but with an ordinary person discovering that the explanation they have lived with is no longer possible. I was not ready to become part of anything extraordinary. The story did not ask for my permission."
+ ];
+ while(paragraphs.join(" ").split(/\s+/).length<850)paragraphs.splice(paragraphs.length-2,0,pick(extras));
+ let text=paragraphs.join("\n\n");
+ if(!["first-hero","first-selected"].includes(s.pov)){
+  const replacements=[[/\bI used to think\b/g,hero+" used to think"],[/\bI remember\b/g,hero+" remembered"],[/\bI had\b/g,hero+" had"],[/\bI wanted\b/g,hero+" wanted"],[/\bI did not\b/g,hero+" did not"],[/\bI chose\b/g,hero+" chose"],[/\bI was\b/g,hero+" was"],[/\bI knew\b/g,hero+" knew"],[/\bI asked\b/g,hero+" asked"],[/\bI looked\b/g,hero+" looked"],[/\bI nearly\b/g,hero+" nearly"],[/\bmy\b/g,"their"],[/\bme\b/g,"them"]];
+  for(const [pattern,replacement] of replacements)text=text.replace(pattern,replacement);
+ }
+ return {number:0,title:"Prologue — "+b.title,text,wordCount:text.trim().split(/\s+/).length};
 }
 function generateChapter(b,n){
  const s=b.settings||{},style=Math.max(0,Math.min(1,(Number(s.styleIntensity??s.parody)||0)/100));
@@ -292,9 +326,9 @@ function generateChapter(b,n){
  };
  const sensory=pick(atmosphere[theme]||atmosphere.mixed),obstacle=pick(obstacles[theme]||obstacles.mixed),stake=pick(stakes[theme]||stakes.mixed);
  const openings=[
-  "By the time "+hero+" reached "+place+", "+sensory+". It should have been a small detail. Instead, it was the first sign that the day had gone off course.",
-  "The trouble began with a question nobody wanted to answer. "+hero+" found the others waiting at "+place+", each carrying a different version of what had happened.",
-  "There was a moment, just before everything changed, when the world seemed ordinary. "+hero+" remembered it clearly because nothing afterward would feel quite the same.",
+  "I had expected "+place+" to be empty. Instead, "+sensory+". For a moment I considered turning back. Then I noticed the detail that made leaving impossible.",
+  "The first thing I noticed was "+sensory+". The second was "+ally+", standing at "+place+" as if they had been waiting for me. I should have asked why. I asked what had happened instead.",
+  "I can still remember how ordinary the day felt before I reached "+place+". "+sensory+". Nothing about it suggested that my understanding of "+world+" was about to change.",
   "The message arrived without a signature. It contained only a place, a time, and a warning: do not bring anyone you cannot afford to lose."
  ];
  const discoveries=[
@@ -329,10 +363,12 @@ function generateChapter(b,n){
  const chapterBeat=n===1?"beginning":n===s.total?"finale":n%5===0?"turning point":n%3===0?"complication":"development";
  let paragraphs=[
   pick(openings),
+  "I had spent more time imagining this moment than admitting it might happen. The thought was uncomfortable, so I pushed it aside and focused on what was directly in front of me.",
   hero+" had come here to "+goal+". That purpose had once seemed clear. Now every new fact added another condition, and every condition made the choice harder.",
   pick(discoveries),
   "The obstacle was immediate: "+obstacle+". "+ally+" suggested taking the safer route, while "+hero+" could see what waiting would cost. "+stake+".",
   pick(dialogueSets).join(" "),
+  "I looked at "+ally+" before answering. Their expression had changed, just slightly. It was the sort of change most people would miss, but I had learned that the smallest hesitation often carried the largest explanation. “Start from the beginning,” I said. “And this time, do not leave out the part you think I will dislike.”",
   "They tested the first explanation instead of accepting it. One detail held; another failed. When the pieces were rearranged, a different possibility emerged: "+pick(reversals),
   "For a few seconds nobody moved. Then "+hero+" chose a course that protected the people involved without pretending the danger had disappeared. The decision was imperfect, but it belonged to them.",
   pick(outcomes)
@@ -353,6 +389,7 @@ function generateChapter(b,n){
   "As they left, "+ally+" noticed that the mark on the wall had changed. Someone—or something—was keeping pace.",
   "For the first time that day, "+hero+" felt certain about one thing: the next choice would matter even more."
  ];
+ paragraphs.push("I wanted to believe that the worst part was behind us. Then "+ally+" said my name in a voice I had never heard before. “There is something else,” they said. I waited. “The person who started this knows you.”");
  paragraphs.push(pick(closings));
  // Expand each installment to approximately 850–950 words using additional scene development.
  const sceneBeats=[
