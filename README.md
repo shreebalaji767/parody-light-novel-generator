@@ -8,7 +8,7 @@ A free, static, browser-based light novel and parody generator. No paid services
 - Parody slider from 0% serious to 100% chaotic.
 - Optional title, premise, and protagonist.
 - Batch generation to keep the browser responsive.
-- Local browser save/load and TXT, Markdown, and JSON export.
+- Manual save/load in browser storage (only when you click Save progress), optional auto-save if you enable it, and TXT, Markdown, and JSON export.
 - Responsive UI for desktop and mobile.
 
 ## GitHub Pages
