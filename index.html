@@ -353,7 +353,7 @@ function createUniqueNovel(s){
  const prior=findSimilarIdea(candidate,state.books||[]);
  let generated=[];try{generated=JSON.parse(localStorage.getItem("novelforge-generated-ideas-v1")||"[]");if(!Array.isArray(generated))generated=[];}catch(e){generated=[];}
  const similarGenerated=findSimilarIdea(candidate,generated);
- if(prior||similarGenerated){const match=prior||similarGenerated;$("status").textContent="This story idea is too similar to a novel you already generated: “"+(match.title||"Untitled novel")+"”. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
+ if(prior||similarGenerated){$("status").textContent="This story idea is too similar to one you generated before. Your private generation history is kept only for duplicate prevention; save a novel to add it to your Library. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
  seen.push(fingerprint);if(seen.length>5000)seen=seen.slice(-5000);
  generated.push({
   id:crypto.randomUUID(),title:candidate.title,premise:candidate.premise,
