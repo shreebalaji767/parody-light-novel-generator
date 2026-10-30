@@ -245,7 +245,7 @@ function chapterTitle(b,n){
 function generatePrologue(b){
  const s=b.settings||{},hero=(s.pov==="first-selected"||s.pov==="third-selected")?(s.povCharacter||s.hero||"the protagonist"):(s.hero||"the protagonist"),theme=themeKey(s.genre);
  const seed=String(b.seed||b.title)+"|prologue";let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619);}
- const pick=a=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return a[(t^t>>>14)>>>0];};
+ const pick=a=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return a[((t^t>>>14)>>>0)%a.length];};
  const memories={isekai:"the day the world gave me a second beginning",fantasy:"the winter the old bells stopped ringing",romance:"the afternoon I mistook a goodbye for an ordinary farewell",school:"the morning an empty desk became impossible to ignore",scifi:"the final transmission from the station",horror:"the night the house began repeating our conversations",action:"the match that ended before the final bell",cozy:"the morning the shop almost closed for good",comedy:"the day the official plan fell apart before breakfast",mixed:"the day the rules of the world quietly changed"};
  let paragraphs=[
  "I used to think the important moments in a person's life announced themselves. A dramatic sound, a warning, perhaps a final chance to turn back. Real life is less considerate. Most of the time, it lets you make an ordinary decision and only explains its importance afterward.",
