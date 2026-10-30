@@ -316,7 +316,11 @@ document.querySelectorAll("[data-count]").forEach(b=>b.addEventListener("click",
 $("parody").addEventListener("input",()=>{$("parodyLabel").textContent=$("parody").value+"%"});
 function generationFingerprint(s){return JSON.stringify({genre:s.genre,genres:s.genres,tones:s.tones,tags:s.tags,styleIntensity:s.styleIntensity??s.parody,referenceMedium:s.parodyMode,references:s.parodySources,title:s.title,premise:s.premise,hero:s.hero,total:s.total});}
 function ideaText(book){
- const settings=book.settings||{},parts=[book.premise||"",settings.hero||""];
+ const settings=book.settings||{},parts=[
+  book.premise||"",settings.hero||"",book.world||"",book.goal||"",
+  book.role||"",book.foe||"",book.place||"",
+  ...(settings.genres||[]),settings.genre||""
+ ];
  return parts.join(" ").normalize("NFKD").toLocaleLowerCase()
   .replace(/[\\u0300-\\u036f]/g,"").replace(/[^\\p{L}\\p{N}]+/gu," ")
   .trim().split(/\\s+/).filter(Boolean);
@@ -351,8 +355,13 @@ function createUniqueNovel(s){
  const similarGenerated=findSimilarIdea(candidate,generated);
  if(prior||similarGenerated){const match=prior||similarGenerated;$("status").textContent="This story idea is too similar to a novel you already generated: “"+(match.title||"Untitled novel")+"”. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
  seen.push(fingerprint);if(seen.length>5000)seen=seen.slice(-5000);
- generated.push({title:candidate.title,premise:candidate.premise,settings:{hero:s.hero||"",genre:s.genre}});
- if(generated.length>1000)generated=generated.slice(-1000);
+ generated.push({
+  id:crypto.randomUUID(),title:candidate.title,premise:candidate.premise,
+  world:candidate.world,role:candidate.role,goal:candidate.goal,foe:candidate.foe,place:candidate.place,
+  generatedAt:new Date().toISOString(),
+  settings:{hero:s.hero||"",genre:s.genre,genres:s.genres||[],tones:s.tones||[],tags:s.tags||[]}
+ });
+ if(generated.length>5000)generated=generated.slice(-5000);
  try{localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen));localStorage.setItem("novelforge-generated-ideas-v1",JSON.stringify(generated));}
  catch(e){$("status").textContent="Could not save the duplicate-prevention record. Export your library or free browser storage before generating.";return false;}
  state.book=candidate;state.book.id=crypto.randomUUID();state.book.notes={characters:"",world:"",timeline:""};state.book.bookmarks=[];state.book.chapters=[];render();batch();return true;
