@@ -187,7 +187,7 @@ function setupChoiceButtons(selectId,containerId,searchId){
  search.addEventListener("input",()=>draw(search.value));draw();
 }
 setupChoiceButtons("genre","genreChoices","genreSearch");setupChoiceButtons("tone","toneChoices","toneSearch");setupChoiceButtons("tags","tagsChoices","tagsSearch");
-const state={book:null,next:1,books:[],generating:false,pauseRequested:false};
+const state={book:null,next:1,books:[],generating:false,pauseRequested:false,sessionFingerprints:new Set()};
 function persistLibrary(){try{localStorage.setItem("novelforge-library-v2",JSON.stringify(state.books));}catch(e){$("status").textContent="Browser storage is full. Export a backup to avoid losing work.";}}
 function renderLibrary(){
  const list=$("libraryList"),stats=$("libraryStats");if(!list)return;
@@ -425,25 +425,38 @@ function findSimilarIdea(candidate,history){
  return null;
 }
 function createUniqueNovel(s){
- const fingerprint=generationFingerprint(s);
- let seen=[];try{seen=JSON.parse(localStorage.getItem("novelforge-generated-fingerprints-v1")||"[]");if(!Array.isArray(seen))seen=[];}catch(e){seen=[];}
- if(seen.includes(fingerprint)){ $("status").textContent="This exact setup has already been generated on this device. Try a genuinely different story idea.";return false;}
- const candidate=createBook(s);
- const prior=findSimilarIdea(candidate,state.books||[]);
- let generated=[];try{generated=JSON.parse(localStorage.getItem("novelforge-generated-ideas-v1")||"[]");if(!Array.isArray(generated))generated=[];}catch(e){generated=[];}
- const similarGenerated=findSimilarIdea(candidate,generated);
- if(prior||similarGenerated){$("status").textContent="This story idea is too similar to one you generated before. Your private generation history is kept only for duplicate prevention; save a novel to add it to your Library. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
- seen.push(fingerprint);if(seen.length>5000)seen=seen.slice(-5000);
- generated.push({
-  id:crypto.randomUUID(),title:candidate.title,premise:candidate.premise,
-  world:candidate.world,role:candidate.role,goal:candidate.goal,foe:candidate.foe,place:candidate.place,
-  generatedAt:new Date().toISOString(),
-  settings:{hero:s.hero||"",genre:s.genre,genres:s.genres||[],tones:s.tones||[],tags:s.tags||[]}
- });
- if(generated.length>5000)generated=generated.slice(-5000);
- try{localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen));localStorage.setItem("novelforge-generated-ideas-v1",JSON.stringify(generated));}
- catch(e){$("status").textContent="Could not save the duplicate-prevention record. Export your library or free browser storage before generating.";return false;}
- state.book=candidate;state.book.id=crypto.randomUUID();state.book.notes={characters:"",world:"",timeline:""};state.book.bookmarks=[];state.book.chapters=[];render();batch();return true;
+  const fingerprint=generationFingerprint(s);
+  let seen=[];try{seen=JSON.parse(localStorage.getItem("novelforge-generated-fingerprints-v1")||"[]");if(!Array.isArray(seen))seen=[];}catch(e){seen=[];}
+  if(seen.includes(fingerprint)||state.sessionFingerprints?.has(fingerprint)){ $("status").textContent="This exact setup has already been generated on this device. Try a genuinely different story idea.";return false;}
+  const candidate=createBook(s);
+  const prior=findSimilarIdea(candidate,state.books||[]);
+  let generated=[];try{generated=JSON.parse(localStorage.getItem("novelforge-generated-ideas-v1")||"[]");if(!Array.isArray(generated))generated=[];}catch(e){generated=[];}
+  const similarGenerated=findSimilarIdea(candidate,generated);
+  if(prior||similarGenerated){$("status").textContent="This story idea is too similar to one you generated before. Your private generation history is kept only for duplicate prevention; save a novel to add it to your Library. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
+  const record={
+   id:crypto.randomUUID(),title:candidate.title,premise:candidate.premise,
+   world:candidate.world,role:candidate.role,goal:candidate.goal,foe:candidate.foe,place:candidate.place,
+   generatedAt:new Date().toISOString(),
+   settings:{hero:s.hero||"",genre:s.genre,genres:s.genres||[],tones:s.tones||[],tags:s.tags||[]}
+  };
+  seen.push(fingerprint);generated.push(record);
+  let duplicateHistorySaved=true;
+  try{
+   // This private cache is intentionally bounded; it is not the user's novel library.
+   localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen.slice(-500)));
+   localStorage.setItem("novelforge-generated-ideas-v1",JSON.stringify(generated.slice(-250)));
+  }catch(firstError){
+   try{
+    // Retry with a much smaller cache before treating persistence as unavailable.
+    localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen.slice(-100)));
+    localStorage.setItem("novelforge-generated-ideas-v1",JSON.stringify(generated.slice(-50)));
+   }catch(secondError){duplicateHistorySaved=false;}
+  }
+  if(!state.sessionFingerprints)state.sessionFingerprints=new Set();
+  state.sessionFingerprints.add(fingerprint);
+  state.book=candidate;state.book.id=crypto.randomUUID();state.book.notes={characters:"",world:"",timeline:""};state.book.bookmarks=[];state.book.chapters=[];render();batch();
+  if(!duplicateHistorySaved)$("status").textContent="Novel generation started. Browser storage is full, so duplicate prevention is temporary for this session; your novel can still be generated. Export your library and clear browser storage later to preserve future saves.";
+  return true;
 }
 $("generate").addEventListener("click",()=>createUniqueNovel(settings()));
 function randomizeSettings(){const genres=[...$("genre").options],tones=[...$("tone").options],counts=[100,250,500,1000,2000,5000,10000];$("genre").querySelectorAll("option").forEach(o=>o.selected=false);$("genre").querySelectorAll("option").forEach(o=>{if(o===choose(genres)||Math.random()<.18)o.selected=true;});$("chapters").value=choose(counts);$("parody").value=choose([0,10,20,30,40,50,60,70,80,90,100]);$("tone").querySelectorAll("option").forEach(o=>o.selected=false);$("tone").querySelectorAll("option").forEach(o=>{if(o===choose(tones)||Math.random()<.15)o.selected=true;});$("tags").querySelectorAll("option").forEach(o=>o.selected=Math.random()<.12);$("title").value="";$("premise").value="";$("hero").value="";$("chapters").dispatchEvent(new Event("input"));$("parody").dispatchEvent(new Event("input"));}
