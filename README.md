@@ -20,9 +20,9 @@ A free, static, browser-based light novel and parody generator. No paid services
 The site is plain HTML, CSS, and JavaScript. It requires no build step and can also be opened locally by opening `index.html`.
 
 ## How the generator works
-This is a template-powered generator, not an AI model. It combines built-in genre-specific story structures, character roles, goals, locations, events, dialogue patterns, and parody beats. Text is generated locally in your browser.
+NovelForge is a procedural story engine, not an AI model or human novelist. Its `narrative-engine.js` module runs entirely in the browser and uses seeded randomness, genre-specific scene material, character profiles, distinct dialogue patterns, plot threads, relationship state, recurring questions, and remembered consequences. Story state is stored with each novel so later chapters can build on earlier decisions. The generator makes no network or AI calls.
 
-**Note:** The generator produces structured, readable template-based stories. It does not provide the same free-form creativity, custom prompt understanding, or narrative continuity as a large language model. Very large novels can use significant browser storage; export a copy as TXT/Markdown when needed.
+The narrative engine is designed to produce more coherent and varied stories than a simple paragraph-template loop, but it cannot understand arbitrary prompts or guarantee the originality, literary judgement, and long-range planning of a skilled human author. Generated chapters are approximately 900–1,000 words. Python is not required at runtime or for GitHub Pages hosting. Very large novels can use significant browser storage; export a copy as TXT/Markdown when needed.
 
 ## License
 Released under the MIT License.
