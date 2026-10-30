@@ -509,7 +509,6 @@ function createUniqueNovel(s){
   // This private history is separate from the Library and is never displayed as a saved novel.
   // Keep every record so older generated stories continue to prevent repetition.
   localStorage.setItem(GENERATION_HISTORY_KEY,JSON.stringify(history));
-  localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify([...knownFingerprints,fingerprint]));
  }catch(error){
   historySaved=false;
   if(!state.sessionFingerprints)state.sessionFingerprints=new Set();
