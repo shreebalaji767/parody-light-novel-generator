@@ -58,6 +58,7 @@ return {settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal
 function chapterTitle(b,n){let base=["An Unexpected Beginning","The Plan Gets Worse","A Very Strange Encounter","The Truth Behind the Rumor","A Brief and Unhelpful Victory","Trouble at the Worst Possible Time","The Secret Nobody Asked For","A Promise Before Dawn","The Turning Point","One Step Beyond"];let parody=b.settings.parody;if(parody>55&&Math.random()*100<parody) return choose(["This Was Not in the Tutorial","A Mandatory Side Quest Appears","The Budget Has Been Reconsidered","The Narrator Needs a Break","A Completely Normal Disaster","Terms and Conditions Apply","The Power of Friendship Has a Cooldown"]);return choose(base)}
 function generateChapter(b,n){
 let s=b.settings,p=s.parody/100,hero=s.hero,world=b.world,goal=b.goal,foe=b.foe,place=b.place;
+let chapterName=chapterTitle(b,n);
 let openings=[
 hero+" had expected "+(s.genre==="romance"?"a quiet moment":s.genre==="horror"?"something unsettling":"a somewhat ordinary day")+". Instead, "+place+" was already in chaos.",
 "The morning began with a sound that did not belong in "+world+". "+hero+" looked up, and immediately regretted being curious.",
@@ -104,16 +105,37 @@ paragraphs.push(...beats.slice(3));
 if(n===s.total)paragraphs.push("At last, the journey reached its conclusion. "+hero+" looked back on everything that had changed and understood that the end of one story could also be the beginning of another.");
 else if(n%Math.max(5,Math.floor(s.total/10))===0)paragraphs.push("But beyond "+place+", a new mystery stirred—one that would challenge everything "+hero+" thought they knew.");
 else paragraphs.push(choose(["And somewhere nearby, trouble was already making its next move.","The day was far from over.","For now, at least, the world held its breath."]));
-// Expand the chapter with complete scene beats to reach the requested long-form chapter length.
-let wordCount=()=>paragraphs.join(" ").trim().split(/\s+/).filter(Boolean).length;
-let i=0;
+// Use a one-time, chapter-specific scene progression. Never cycle the same paragraph to pad length.
+let wordCount=()=>paragraphs.join(" ").trim().split(/\\s+/).filter(Boolean).length;
+let sceneIndex=0;
 while(wordCount()<850){
- paragraphs.push(beats[i%beats.length]);
- if(p>0.5&&i%3===1)paragraphs.push(choose(jokes)+" "+choose(actions));
- i++;
+ let scene=beats[sceneIndex%beats.length];
+ let chapterVariation=" In chapter "+n+", "+hero+" considered the next move from a different angle: "+choose([
+ "the clue could be a warning rather than an invitation.",
+ "the person who seemed least involved might hold the key.",
+ "the simplest explanation deserved another look.",
+ "a small promise made earlier could not be ignored.",
+ "the safest route might cost them the most.",
+ "the answer would matter only if everyone understood it."
+ ]);
+ let paragraph=scene+chapterVariation;
+ if(!paragraphs.includes(paragraph))paragraphs.push(paragraph);
+ sceneIndex++;
+ if(sceneIndex>beats.length*3)break;
 }
-let text=paragraphs.join("\n\n");
-return {number:n,title:chapterTitle(b,n),text,wordCount:wordCount()};
+let uniqueParagraphs=[...new Set(paragraphs)];
+// If randomized choices collide, add distinct chapter-specific reflection paragraphs.
+let reflections=[
+hero+" remembered the detail that had started this chain of events: "+chapterName+". It looked different now, after the arguments and close calls. What once seemed like a straightforward challenge had become a test of patience, trust, and the willingness to admit uncertainty.",
+"Nothing about the outcome was effortless. "+hero+" had to weigh the cost of every option, including the uncomfortable possibility that doing the right thing might disappoint someone. That realization did not make the decision easier, but it made the stakes honest.",
+"Before moving on, "+hero+" made a mental note of what had changed. The world had not suddenly become kinder, and "+foe+" remained a concern. Still, the experience had supplied a new piece of knowledge—one that could be used rather than merely remembered."
+];
+let r=0;
+while(uniqueParagraphs.join(" ").trim().split(/\\s+/).filter(Boolean).length<850&&r<reflections.length){
+ uniqueParagraphs.push(reflections[r++]);
+}
+let text=uniqueParagraphs.join("\\n\\n");
+return {number:n,title:chapterName,text,wordCount:text.trim().split(/\\s+/).filter(Boolean).length};
 }
 function render(){let b=state.book;if(!b)return;let out=$("output"),chapters=b.chapters;
 let done=chapters.length,percent=Math.round(done/b.settings.total*100);
