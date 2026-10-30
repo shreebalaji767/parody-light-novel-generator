@@ -207,7 +207,7 @@ const choose=a=>a[Math.floor(Math.random()*a.length)];
 function themeKey(genre){const key=String(genre||"").split("::")[0];return themes[key]?key:"mixed";}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function settings(){let genreOptions=[...$("genre").selectedOptions];let genres=genreOptions.map(o=>o.text);let genre=genreOptions.length?genreOptions[0].value:"isekai";if(!genres.length)genres=["Isekai / Reincarnation"];let tones=[...$("tone").selectedOptions].map(o=>o.value);if(!tones.length)tones=["Adventurous"];let tags=[...$("tags").selectedOptions].map(o=>o.text);let n=Number($("chapters").value);if(!Number.isFinite(n))n=1;n=Math.max(1,Math.min(10000,Math.floor(n)));$("chapters").value=n;return {genre,genres,total:n,styleIntensity:Number($("parody").value),tone:tones[0],tones,tags,parodyMode:$("parodyMode").value,parodySource:$("parodySource").value.trim(),parodySources:$("parodySource").value.split(/[\n;,]+/).map(x=>x.trim()).filter(Boolean),title:$("title").value.trim(),premise:$("premise").value.trim(),hero:$("hero").value.trim()||"the protagonist",batch:n}}
-function createBook(s){let key=themeKey(s.genre),t=themes[key],title=s.title||choose(titles[key]);let reference=s.parodySources&&s.parodySources.length?s.parodySources[0]:"";let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
+function createBook(s){let key=themeKey(s.genre),t=themes[key],title=s.title||choose(titles[key]);let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
 return {settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),chapters:[],created:new Date().toISOString()}}
 function chapterTitle(b,n){
  const base=["A Door Left Open","The Price of a Promise","A Stranger's Warning","The First Setback","An Unlikely Ally","The Hidden Cost","A Choice at Dusk","The Road Divides","The Truth Emerges","Beyond the Horizon","A Plan in Motion","The Quiet Before","The Name We Forgot","A Debt Repaid","The Long Way Home","The Last Safe Place","A Change of Heart","The Missing Piece","When the Lights Go Out","A New Beginning"];
@@ -280,24 +280,24 @@ function generateChapter(b,n){
 function cleanLegacyMeta(book){
  if(!book)return book;
  const clean=value=>String(value||"")
-  .replace(/\\s*A parody inspired by [^.!?]+[.!?]/gi,"")
-  .replace(/\\s*Parody inspirations?:\\s*[^.!?]+[.!?](?:\\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\\.)?/gi,"")
-  .replace(/\\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\\./gi,"")
-  .replace(/\\s{2,}/g," ").trim();
- const references=[...(book.settings?.parodySources||[]),...(book.settings?.parodySource||"").split(/[\\n;,]+/)].map(x=>String(x||"").trim()).filter(Boolean);
- const hideReferences=value=>references.reduce((text,reference)=>{
-  const escaped=reference.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\function cleanLegacyMeta(book){
- if(!book)return book;
- const clean=value=>String(value||"")
-  .replace(/\\s*A parody inspired by [^.!?]+[.!?]/gi,"")
-  .replace(/\\s*Parody inspirations?:\\s*[^.!?]+[.!?](?:\\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\\.)?/gi,"")
-  .replace(/\\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\\./gi,"")
-  .replace(/\\s{2,}/g," ").trim();
- book.premise=clean(book.premise);
- (book.chapters||[]).forEach(ch=>{ch.text=clean(ch.text);});
- return book;
-}");
-  return text.replace(new RegExp("(^|[^\\\\p{L}\\\\p{N}_])"+escaped+"(?=$|[^\\\\p{L}\\\\p{N}_])","giu"),"$1the inspiration");
+  .replace(/\s*A parody inspired by [^.!?]+[.!?]/gi,"")
+  .replace(/\s*Parody inspirations?:\s*[^.!?]+[.!?](?:\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\.)?/gi,"")
+  .replace(/\s*This is an original, transformative parody with newly generated characters, situations, and dialogue—not copied scenes or text\./gi,"")
+  .replace(/\s{2,}/g," ").trim();
+ const references=[...(book.settings?.parodySources||[]),...(book.settings?.parodySource||"").split(/[\n;,]+/)].map(x=>String(x||"").trim()).filter(Boolean);
+ const hideReferences=value=>references.reduce((source,reference)=>{
+  const lower=source.toLocaleLowerCase(),needle=reference.toLocaleLowerCase();
+  let cursor=0,result="";
+  while(cursor<source.length){
+   const index=lower.indexOf(needle,cursor);
+   if(index<0){result+=source.slice(cursor);break;}
+   const before=index?source[index-1]:"",after=source[index+reference.length]||"";
+   const wordChar=ch=>!!ch&&/[\p{L}\p{N}_]/u.test(ch);
+   if(wordChar(before)||wordChar(after)){result+=source.slice(cursor,index+reference.length);cursor=index+reference.length;continue;}
+   result+=source.slice(cursor,index)+"the inspiration";
+   cursor=index+reference.length;
+  }
+  return result;
  },clean(value));
  book.premise=hideReferences(book.premise);
  (book.chapters||[]).forEach(ch=>{ch.text=hideReferences(ch.text);});
