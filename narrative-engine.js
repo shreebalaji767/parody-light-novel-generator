@@ -66,7 +66,7 @@ a.name+" offered to make that approach. It was a surprising offer from someone w
 "The message did not include a request. That made it harder to ignore. Whoever had sent it knew what the group had discovered and had chosen to provide one more piece without explaining why. "+hero.name+" saved the image, recorded the time, and resisted the temptation to answer immediately. Trust could not be built from dramatic gestures. It would have to be tested in small decisions, especially when the sender's next move became inconvenient.",
 "For the first time since the investigation began, "+hero.name+" allowed the possibility that the truth might not restore what had been lost. It might only show why the loss had happened and who had benefited. That was not the same as justice. It was, however, a place from which justice could begin. They wrote the new name beneath the old question and closed the notebook."
 ];
-let text=q.join("\n\n");
+let text=q.slice(0,13).concat(q[14],q[24]).join("\n\n");
 if(s.pov==="first-hero"||s.pov==="first-selected"){let view=s.pov==="first-selected"?(s.povCharacter||hero.name):hero.name;text=text.replace(new RegExp("\\b"+view.replace(/[.*+?^$(){}|[\]\\]/g,"\\$&")+"\\b","g"),"I");}
 const thread=st.threads[(n+st.arc)%st.threads.length];thread.progress=Math.min(100,thread.progress+pick([7,11,14,18],r));thread.status=thread.progress>=100?"resolved":thread.progress>60?"exposed":"active";
 const rel=st.relationships.find(x=>x.id===a.id);if(rel){rel.trust=Math.max(-5,Math.min(10,rel.trust+(choice.includes("protect")?1:-1)));rel.tension=Math.max(0,rel.tension+(cost.includes("trust")?2:1));rel.history.push({chapter:n,cost});rel.history=rel.history.slice(-5);}
