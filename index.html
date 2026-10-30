@@ -172,6 +172,7 @@ body.landing-page .landing-highlights{grid-template-columns:repeat(3,minmax(0,1f
 </div>
 </main>
 <footer class="wrap foot">NovelForge · A free static browser app · Built with vanilla HTML, CSS & JavaScript · <a href="https://github.com/shreebalaji767/parody-light-novel-generator">Open-source project</a></footer>
+<script src="./narrative-engine.js"></script>
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id);
@@ -235,7 +236,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 function settings(){let genreOptions=[...$("genre").selectedOptions];let genres=genreOptions.map(o=>o.text);let genre=genreOptions.length?genreOptions[0].value:"isekai";if(!genres.length)genres=["Isekai / Reincarnation"];let tones=[...$("tone").selectedOptions].map(o=>o.value);if(!tones.length)tones=["Adventurous"];let tags=[...$("tags").selectedOptions].map(o=>o.text);let n=Number($("chapters").value);if(!Number.isFinite(n))n=1;n=Math.max(1,Math.min(10000,Math.floor(n)));$("chapters").value=n;return {genre,genres,total:n,styleIntensity:Number($("parody").value),tone:tones[0],tones,tags,parodyMode:$("parodyMode").value,parodySource:$("parodySource").value.trim(),parodySources:$("parodySource").value.split(/[\n;,]+/).map(x=>x.trim()).filter(Boolean),title:$("title").value.trim(),premise:$("premise").value.trim(),hero:$("hero").value.trim()||"the protagonist",pov:$("pov").value,povCharacter:$("povCharacter").value.trim(),batch:n}}
 function createBook(s){let key=themeKey(s.genre),t=themes[key],title=s.title||choose(titles[key]);let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
 let book={settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),seed:(Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)),chapters:[],created:new Date().toISOString()};
-book.prologue=generatePrologue(book);return book}
+book.narrative=window.NovelForgeNarrative?window.NovelForgeNarrative.initialize(book):null;book.prologue=window.NovelForgeNarrative?window.NovelForgeNarrative.prologue(book):generatePrologue(book);return book}
 function chapterTitle(b,n){
  const subjects=["Ashes Beneath the Snow","The Bell at Dusk","A Promise Written in Rain","Where the Blue Lantern Waits","The Unseen Passenger","Letters from the Far Shore","The Shape of an Old Fear","A Garden Beyond Winter","The Map of Borrowed Stars","The Day the River Turned","A Name Left Unspoken","The Last Train to Morning","The Crown of Quiet Thorns","A Window Full of Thunder","The Weight of Small Decisions","The City Behind the Mist","An Echo in the Glass","The Orchard of Lost Hours","A Door Made of Starlight","The Witness in the Clocktower","The Sea Between Two Hearts","A Thousand Steps Home","The Library of Unfinished Vows","The Sound of Falling Feathers","A Shadow at the Festival","The Compass and the Flame","The Winter's Hidden Guest","A Sky Without Footprints","The Secret Under the Bridge","The Hour Before the Truth","The House That Remembered","A Candle for the Missing","The Road of Paper Moons","The Silence After the Bell","The Fox at the Crossroads","A Debt to Tomorrow","The Colour of Forgotten Names","The Last Page of Summer","A Song Beneath the Earth","The Doorway of Second Chances"];
  const playful=["A Catastrophe with Excellent Timing","The Committee of Questionable Decisions","One More Thing Went Wrong","A Very Official Disaster","The Fine Print Strikes Back","An Appointment with Chaos","The Plan Requires Snacks","This Was Not in the Manual"];
@@ -279,6 +280,7 @@ function generatePrologue(b){
  return {number:0,title:"Prologue — "+b.title,text,wordCount:text.trim().split(/\s+/).length};
 }
 function generateChapter(b,n){
+ if(window.NovelForgeNarrative)return window.NovelForgeNarrative.generate(b,n);
  const s=b.settings||{},style=Math.max(0,Math.min(1,(Number(s.styleIntensity??s.parody)||0)/100));
  const protagonist=s.hero||"the protagonist",hero=(s.pov==="first-selected"||s.pov==="third-selected")?(s.povCharacter||protagonist):protagonist,world=b.world||"the wider world",goal=b.goal||"discover the truth",foe=b.foe||"the opposition",place=b.place||"the next destination",theme=themeKey(s.genre);
  const seedText=String(b.seed||b.created||b.title||"novelforge")+"|chapter|"+n;
