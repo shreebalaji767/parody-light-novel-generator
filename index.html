@@ -315,13 +315,47 @@ $("chapters").addEventListener("input",()=>{$("chapterLabel").textContent=(Numbe
 document.querySelectorAll("[data-count]").forEach(b=>b.addEventListener("click",()=>{$("chapters").value=b.dataset.count;$("chapters").dispatchEvent(new Event("input"))}));
 $("parody").addEventListener("input",()=>{$("parodyLabel").textContent=$("parody").value+"%"});
 function generationFingerprint(s){return JSON.stringify({genre:s.genre,genres:s.genres,tones:s.tones,tags:s.tags,styleIntensity:s.styleIntensity??s.parody,referenceMedium:s.parodyMode,references:s.parodySources,title:s.title,premise:s.premise,hero:s.hero,total:s.total});}
+function ideaText(book){
+ const settings=book.settings||{},parts=[book.premise||"",settings.hero||""];
+ return parts.join(" ").normalize("NFKD").toLocaleLowerCase()
+  .replace(/[\\u0300-\\u036f]/g,"").replace(/[^\\p{L}\\p{N}]+/gu," ")
+  .trim().split(/\\s+/).filter(Boolean);
+}
+function ideaSimilarity(a,b){
+ const stop=new Set(["a","an","and","are","as","at","be","by","for","from","in","into","is","it","of","on","or","the","to","with","their","they","who","when","where","while","this","that","then","than"]);
+ const left=new Set(a.filter(w=>!stop.has(w))),right=new Set(b.filter(w=>!stop.has(w)));
+ if(!left.size||!right.size)return 0;
+ let overlap=0;for(const word of left)if(right.has(word))overlap++;
+ const union=new Set([...left,...right]).size;
+ const jaccard=overlap/union,containment=overlap/Math.min(left.size,right.size);
+ return Math.max(jaccard,containment*.88);
+}
+function findSimilarIdea(candidate,history){
+ const words=ideaText(candidate);if(!words.length)return null;
+ for(const old of history){
+  if(!old||old.id===candidate.id)continue;
+  const prior=ideaText(old);if(!prior.length)continue;
+  const exact=words.join(" ")===prior.join(" ");
+  const similarity=ideaSimilarity(words,prior);
+  if(exact||(Math.min(words.length,prior.length)>=5&&similarity>=.84))return old;
+ }
+ return null;
+}
 function createUniqueNovel(s){
  const fingerprint=generationFingerprint(s);
  let seen=[];try{seen=JSON.parse(localStorage.getItem("novelforge-generated-fingerprints-v1")||"[]");if(!Array.isArray(seen))seen=[];}catch(e){seen=[];}
- if(seen.includes(fingerprint)){ $("status").textContent="This exact novel setup has already been generated on this device. Change the title, premise, protagonist, references, or settings to create a different novel.";return false;}
+ if(seen.includes(fingerprint)){ $("status").textContent="This exact setup has already been generated on this device. Try a genuinely different story idea.";return false;}
+ const candidate=createBook(s);
+ const prior=findSimilarIdea(candidate,state.books||[]);
+ let generated=[];try{generated=JSON.parse(localStorage.getItem("novelforge-generated-ideas-v1")||"[]");if(!Array.isArray(generated))generated=[];}catch(e){generated=[];}
+ const similarGenerated=findSimilarIdea(candidate,generated);
+ if(prior||similarGenerated){const match=prior||similarGenerated;$("status").textContent="This story idea is too similar to a novel you already generated: “"+(match.title||"Untitled novel")+"”. Change the core premise or protagonist goal to create a genuinely different story.";return false;}
  seen.push(fingerprint);if(seen.length>5000)seen=seen.slice(-5000);
- try{localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen));}catch(e){$("status").textContent="Could not save the duplicate-prevention record. Clear browser storage or export your library.";return false;}
- state.book=createBook(s);state.book.id=crypto.randomUUID();state.book.notes={characters:"",world:"",timeline:""};state.book.bookmarks=[];state.book.chapters=[];render();batch();return true;
+ generated.push({title:candidate.title,premise:candidate.premise,settings:{hero:s.hero||"",genre:s.genre}});
+ if(generated.length>1000)generated=generated.slice(-1000);
+ try{localStorage.setItem("novelforge-generated-fingerprints-v1",JSON.stringify(seen));localStorage.setItem("novelforge-generated-ideas-v1",JSON.stringify(generated));}
+ catch(e){$("status").textContent="Could not save the duplicate-prevention record. Export your library or free browser storage before generating.";return false;}
+ state.book=candidate;state.book.id=crypto.randomUUID();state.book.notes={characters:"",world:"",timeline:""};state.book.bookmarks=[];state.book.chapters=[];render();batch();return true;
 }
 $("generate").addEventListener("click",()=>createUniqueNovel(settings()));
 function randomizeSettings(){const genres=[...$("genre").options],tones=[...$("tone").options],counts=[100,250,500,1000,2000,5000,10000];$("genre").querySelectorAll("option").forEach(o=>o.selected=false);$("genre").querySelectorAll("option").forEach(o=>{if(o===choose(genres)||Math.random()<.18)o.selected=true;});$("chapters").value=choose(counts);$("parody").value=choose([0,10,20,30,40,50,60,70,80,90,100]);$("tone").querySelectorAll("option").forEach(o=>o.selected=false);$("tone").querySelectorAll("option").forEach(o=>{if(o===choose(tones)||Math.random()<.15)o.selected=true;});$("tags").querySelectorAll("option").forEach(o=>o.selected=Math.random()<.12);$("title").value="";$("premise").value="";$("hero").value="";$("chapters").dispatchEvent(new Event("input"));$("parody").dispatchEvent(new Event("input"));}
