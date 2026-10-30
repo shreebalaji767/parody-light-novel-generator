@@ -7,6 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="apple-touch-icon" href="./icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NovelForge">
@@ -204,7 +205,7 @@ $("chapters").dispatchEvent(new Event("input"));if(localStorage.getItem("novelfo
  const installStatus=message=>$("status").textContent=message;
  const isInstalled=()=>window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
  if(isInstalled()){installButton.textContent="✓ App installed";installButton.disabled=true;installButton.setAttribute("aria-label","NovelForge is installed");}
- window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;installButton.hidden=false;installButton.disabled=false;installButton.textContent="⬇ Install app";});
+ window.addEventListener("beforeinstallprompt",event=>{deferredInstallPrompt=event;installButton.hidden=false;installButton.disabled=false;installButton.textContent="⬇ Install app";});
  installButton.addEventListener("click",async()=>{
   if(isInstalled()){installStatus("NovelForge is already installed.");return;}
   if(deferredInstallPrompt){deferredInstallPrompt.prompt();const choice=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(choice.outcome==="accepted"){installButton.textContent="✓ Installed";installStatus("NovelForge installation started.");}else installStatus("Installation was cancelled. You can install later from your browser menu.");return;}
