@@ -27,7 +27,7 @@
 <div class="field"><label for="batch">Generate chapters per batch</label><select id="batch"><option value="10">10 chapters (recommended)</option><option value="25">25 chapters</option><option value="50">50 chapters</option><option value="100">100 chapters</option></select><p class="smallnote">Large novels are generated in batches to keep your browser responsive.</p></div>
 <div class="actions"><button class="btn primary" id="generate">✦ Generate novel</button><button class="btn secondary" id="continue" disabled>Continue batch</button><button class="btn ghost" id="save">Save progress</button><button class="btn ghost" id="load">Load saved</button></div>
 <div class="status" id="status" role="status" aria-live="polite">Ready to create your story.</div>
-<hr class="divider"><label class="toggle"><input type="checkbox" id="autoSave" checked> Auto-save progress in this browser</label>
+<hr class="divider"><label class="toggle"><input type="checkbox" id="autoSave"> Auto-save progress in this browser (optional)</label>
 </aside>
 <section class="panel content" id="output" aria-live="polite"><div class="empty"><div><div class="symbol">📖</div><h2>Your next favorite novel starts here.</h2><p>Choose your settings and hit <b>Generate novel</b>.</p><p class="smallnote">This is a template-powered story generator, not an AI writing service. Generated text is original combinations of built-in story patterns and your inputs.</p></div></div></section>
 </div>
@@ -81,17 +81,17 @@ $("openAll").onclick=()=>out.querySelectorAll("details").forEach(d=>d.open=true)
 function textBook(b){return b.title+"\n\n"+b.premise+"\n\n"+b.chapters.map(c=>"CHAPTER "+c.number+": "+c.title+"\n\n"+c.text).join("\n\n")}
 function markdownBook(b){return "# "+b.title+"\n\n"+b.premise+"\n\n"+b.chapters.map(c=>"## Chapter "+c.number+": "+c.title+"\n\n"+c.text).join("\n\n")}
 function download(text,ext,title){let blob=new Blob([text],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=(title||"novel").replace(/[^a-z0-9-_ ]/gi,"").trim().replace(/\s+/g,"-").slice(0,70)+"."+ext;document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url)}
-function save(){if(!state.book){$("status").textContent="Generate a novel first.";return}try{localStorage.setItem("novelforge-book",JSON.stringify(state.book));localStorage.setItem("novelforge-next",String(state.next));$("status").textContent="Progress saved in this browser."}catch(e){$("status").textContent="Save failed: browser storage may be full. Export your novel instead."}}
+function save(){if(!state.book){$("status").textContent="Generate a novel first.";return}try{localStorage.setItem("novelforge-book",JSON.stringify(state.book));localStorage.setItem("novelforge-next",String(state.next));$("status").textContent="Saved only because you clicked Save progress. Use Export TXT/Markdown to download a copy."}catch(e){$("status").textContent="Save failed: browser storage may be full. Export your novel instead."}}
 function load(){try{let b=JSON.parse(localStorage.getItem("novelforge-book"));if(!b||!Array.isArray(b.chapters))throw Error();state.book=b;state.next=Number(localStorage.getItem("novelforge-next"))||b.chapters.length+1;render();$("status").textContent="Saved novel loaded.";return true}catch(e){$("status").textContent="No saved novel found in this browser.";return false}}
 function batch(){let b=state.book;if(!b)return;let end=Math.min(b.settings.total,b.chapters.length+b.settings.batch);while(b.chapters.length<end)b.chapters.push(generateChapter(b,b.chapters.length+1));state.next=b.chapters.length+1;render();$("status").textContent="Generated chapters "+(end-b.settings.batch+1).toLocaleString()+"–"+end.toLocaleString()+".";
-if($("autoSave").checked)try{localStorage.setItem("novelforge-book",JSON.stringify(b));localStorage.setItem("novelforge-next",String(state.next))}catch(e){$("status").textContent+=" Storage full; export to keep a copy."}
+if($("autoSave").checked)try{localStorage.setItem("novelforge-book",JSON.stringify(b));localStorage.setItem("novelforge-next",String(state.next));$("status").textContent+=" Auto-saved because you enabled it."}catch(e){$("status").textContent+=" Storage full; export to keep a copy."}
 }
 $("chapters").addEventListener("input",()=>{$("chapterLabel").textContent=(Number($("chapters").value)||0).toLocaleString();document.querySelectorAll("[data-count]").forEach(b=>b.classList.toggle("active",Number(b.dataset.count)===Number($("chapters").value)))});
 document.querySelectorAll("[data-count]").forEach(b=>b.addEventListener("click",()=>{$("chapters").value=b.dataset.count;$("chapters").dispatchEvent(new Event("input"))}));
 $("parody").addEventListener("input",()=>{$("parodyLabel").textContent=$("parody").value+"%"});
 $("generate").addEventListener("click",()=>{let s=settings();state.book=createBook(s);state.book.chapters=[];batch()});
 $("continue").addEventListener("click",batch);$("save").addEventListener("click",save);$("load").addEventListener("click",load);
-$("chapters").dispatchEvent(new Event("input"));if(localStorage.getItem("novelforge-book"))$("status").textContent="A saved novel is available. Use Load saved to continue.";
+$("chapters").dispatchEvent(new Event("input"));if(localStorage.getItem("novelforge-book"))$("status").textContent="A saved novel is available. Use Load saved to continue. No automatic saving is enabled.";
 })();
 </script>
 </body>
