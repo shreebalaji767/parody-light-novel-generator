@@ -56,20 +56,65 @@ function settings(){let n=Number($("chapters").value);if(!Number.isFinite(n))n=1
 function createBook(s){let t=themes[s.genre],title=s.title||choose(titles[s.genre]);let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
 return {settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),chapters:[],created:new Date().toISOString()}}
 function chapterTitle(b,n){let base=["An Unexpected Beginning","The Plan Gets Worse","A Very Strange Encounter","The Truth Behind the Rumor","A Brief and Unhelpful Victory","Trouble at the Worst Possible Time","The Secret Nobody Asked For","A Promise Before Dawn","The Turning Point","One Step Beyond"];let parody=b.settings.parody;if(parody>55&&Math.random()*100<parody) return choose(["This Was Not in the Tutorial","A Mandatory Side Quest Appears","The Budget Has Been Reconsidered","The Narrator Needs a Break","A Completely Normal Disaster","Terms and Conditions Apply","The Power of Friendship Has a Cooldown"]);return choose(base)}
-function generateChapter(b,n){let s=b.settings,p=s.parody/100,hero=b.settings.hero,world=b.world,goal=b.goal,foe=b.foe,place=b.place,tone=s.tone;
-let openings=[hero+" had expected "+(s.genre==="romance"?"a quiet moment":s.genre==="horror"?"something unsettling":"a somewhat ordinary day")+". Instead, "+place+" was already in chaos.", "The morning began with a sound that did not belong in "+world+". "+hero+" looked up, and immediately regretted being curious.", "There were three things "+hero+" knew for certain: "+goal+", the day was not going to plan, and "+place+" was probably responsible."];
-let actions=["After a moment of careful thought, "+hero+" decided to investigate.","With no better plan available, "+hero+" stepped forward.","The sensible choice was to leave. Naturally, "+hero+" did not.","A small clue appeared, and suddenly the entire situation made less sense."];
-let dialogue=[["“Tell me this is part of the plan.”","“It is now,” came the reply."],["“We need a strategy.”","“I have one.”","“Is it a good one?”","“I have one.”"],["“I can explain.”","“That would be a first.”"]];
-let stakes=["The encounter with "+foe+" had changed the stakes.","A quiet decision now threatened to affect everyone in "+world+".","The path toward "+goal+" had become more complicated than anyone admitted."];
-let jokes=["Somewhere, a rulebook burst into flames.","The universe appeared to be running on a trial version.","This was, technically, a learning experience. Nobody had consented to the lesson.","The dramatic music arrived several seconds late."];
+function generateChapter(b,n){
+let s=b.settings,p=s.parody/100,hero=s.hero,world=b.world,goal=b.goal,foe=b.foe,place=b.place;
+let openings=[
+hero+" had expected "+(s.genre==="romance"?"a quiet moment":s.genre==="horror"?"something unsettling":"a somewhat ordinary day")+". Instead, "+place+" was already in chaos.",
+"The morning began with a sound that did not belong in "+world+". "+hero+" looked up, and immediately regretted being curious.",
+"There were three things "+hero+" knew for certain: "+goal+", the day was not going to plan, and "+place+" was probably responsible."
+];
+let actions=[
+"After a moment of careful thought, "+hero+" decided to investigate.",
+"With no better plan available, "+hero+" stepped forward.",
+"The sensible choice was to leave. Naturally, "+hero+" did not.",
+"A small clue appeared, and suddenly the entire situation made less sense."
+];
+let dialogue=[
+["“Tell me this is part of the plan.”","“It is now,” came the reply."],
+["“We need a strategy.”","“I have one.”","“Is it a good one?”","“I have one.”"],
+["“I can explain.”","“That would be a first.”"]
+];
+let stakes=[
+"The encounter with "+foe+" had changed the stakes.",
+"A quiet decision now threatened to affect everyone in "+world+".",
+"The path toward "+goal+" had become more complicated than anyone admitted."
+];
+let jokes=[
+"Somewhere, a rulebook burst into flames.",
+"The universe appeared to be running on a trial version.",
+"This was, technically, a learning experience. Nobody had consented to the lesson.",
+"The dramatic music arrived several seconds late."
+];
+let beats=[
+"Taking a steady breath, "+hero+" studied the scene. The details did not fit together neatly: one clue pointed toward "+place+", another suggested that "+foe+" had anticipated this exact move. It was tempting to rush ahead, but haste had already made the situation worse. For once, "+hero+" chose to listen, observe, and let the silence reveal what the noise had hidden.",
+"At first, the explanation sounded almost reasonable. Then came the missing detail—the small, inconvenient fact that turned a simple problem into a much larger one. "+hero+" asked a careful question and received an answer that raised two more. Somewhere in the back of their mind, the original goal remained clear: "+goal+". Getting there would require more than a bold declaration.",
+"The people nearby reacted in their own ways. Some offered advice, some offered excuses, and one person seemed far too pleased that everything was going wrong. "+hero+" tried to separate useful information from dramatic speculation. It was not easy. Every new voice added another version of events, and the truth seemed to be hiding between them.",
+"A plan began to take shape—not a perfect plan, certainly, but one with a first step. "+hero+" explained what needed to happen, why it mattered, and what could go wrong. The last part took longer than expected. Nobody liked hearing about the risks, especially when the risks involved them, but pretending danger did not exist would not make it disappear.",
+"The next few moments tested that plan immediately. A sudden interruption forced "+hero+" to improvise, turning a carefully arranged sequence into a scramble. Even so, the earlier observations mattered. A detail that had seemed unimportant now offered a way forward, and "+hero+" seized it before doubt could take over.",
+"For a brief moment, the situation seemed to settle. The relief was real, but it was not the same as safety. "+hero+" looked toward "+place+" and understood that the visible problem was only one piece of the larger puzzle. The real question was not whether they could win this small encounter, but what the victory—or failure—would mean afterward.",
+"That thought brought the conversation back to the reason everyone had gathered. "+goal+" was still waiting beyond the immediate trouble. The journey had become frustrating, strange, and occasionally ridiculous, yet abandoning it now would leave the people counting on "+hero+" with no answer at all.",
+"By the time the dust began to settle, "+hero+" had learned something valuable about the people involved. Bravery could look like speaking up; wisdom could look like changing one's mind. Neither came with a guarantee of success. What mattered was the choice to keep moving while accepting that the next decision might be difficult."
+];
 let paragraphs=[choose(openings),choose(actions),choose(dialogue).join(" "),choose(stakes)];
 if(Math.random()<p)paragraphs.splice(2,0,choose(jokes));
-if(Math.random()<p*.7)paragraphs.push(choose(["“Can we please have one scene without a plot twist?” "+hero+" asked.","The narrator would like to clarify that this was not the original plan.","If this were a game, the objective marker would currently be blinking in confusion."]));
 paragraphs.push("Even so, "+hero+" held on to the one thing that mattered: the determination to "+goal+". "+choose(["Whatever waited next, they would face it together.","The next step was uncertain, but standing still was worse.","For the first time that day, the way forward seemed almost clear."]));
+paragraphs.push(...beats.slice(0,3));
+if(Math.random()<p*.7)paragraphs.push(choose(["“Can we please have one scene without a plot twist?” "+hero+" asked.","The narrator would like to clarify that this was not the original plan.","If this were a game, the objective marker would currently be blinking in confusion."]));
+paragraphs.push(...beats.slice(3));
 if(n===s.total)paragraphs.push("At last, the journey reached its conclusion. "+hero+" looked back on everything that had changed and understood that the end of one story could also be the beginning of another.");
 else if(n%Math.max(5,Math.floor(s.total/10))===0)paragraphs.push("But beyond "+place+", a new mystery stirred—one that would challenge everything "+hero+" thought they knew.");
 else paragraphs.push(choose(["And somewhere nearby, trouble was already making its next move.","The day was far from over.","For now, at least, the world held its breath."]));
-return {number:n,title:chapterTitle(b,n),text:paragraphs.join("\n\n")}}
+// Expand the chapter with complete scene beats to reach the requested long-form chapter length.
+let wordCount=()=>paragraphs.join(" ").trim().split(/\s+/).filter(Boolean).length;
+let i=0;
+while(wordCount()<850){
+ paragraphs.push(beats[i%beats.length]);
+ if(p>0.5&&i%3===1)paragraphs.push(choose(jokes)+" "+choose(actions));
+ i++;
+}
+let text=paragraphs.join("\n\n");
+return {number:n,title:chapterTitle(b,n),text,wordCount:wordCount()};
+}
 function render(){let b=state.book;if(!b)return;let out=$("output"),chapters=b.chapters;
 let done=chapters.length,percent=Math.round(done/b.settings.total*100);
 out.innerHTML='<div class="bookhead"><div class="eyebrow">Your generated novel</div><h2>'+esc(b.title)+'</h2><p>'+esc(b.premise)+'</p><div class="bookmeta"><span class="chip">'+esc(b.settings.genre.toUpperCase())+'</span><span class="chip">'+b.settings.parody+'% parody</span><span class="chip">'+done.toLocaleString()+' / '+b.settings.total.toLocaleString()+' chapters</span><span class="chip">'+esc(b.settings.tone)+'</span></div><div class="progress"><div style="width:'+percent+'%"></div></div><div class="toolbar"><button class="btn secondary" id="exportTxt">Export TXT</button><button class="btn secondary" id="exportMd">Export Markdown</button><button class="btn ghost" id="exportJson">Export JSON</button><button class="btn ghost" id="openAll">Open all</button><button class="btn ghost" id="closeAll">Close all</button></div></div><div class="chapterlist">'+chapters.map(c=>'<details class="chapter"><summary>Chapter '+c.number.toLocaleString()+': '+esc(c.title)+'</summary><div class="chapterbody">'+c.text.split("\n\n").map(p=>'<p>'+esc(p)+'</p>').join("")+'</div></details>').join("")+'</div>';
