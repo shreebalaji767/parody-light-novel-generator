@@ -121,7 +121,7 @@ while(wordCount()<850){
  let paragraph=scene+chapterVariation;
  if(!paragraphs.includes(paragraph))paragraphs.push(paragraph);
  sceneIndex++;
- if(sceneIndex>beats.length*3)break;
+ 
 }
 let uniqueParagraphs=[...new Set(paragraphs)];
 // If randomized choices collide, add distinct chapter-specific reflection paragraphs.
@@ -131,10 +131,10 @@ hero+" remembered the detail that had started this chain of events: "+chapterNam
 "Before moving on, "+hero+" made a mental note of what had changed. The world had not suddenly become kinder, and "+foe+" remained a concern. Still, the experience had supplied a new piece of knowledge—one that could be used rather than merely remembered."
 ];
 let r=0;
-while(uniqueParagraphs.join(" ").trim().split(/\\s+/).filter(Boolean).length<850&&r<reflections.length){
- uniqueParagraphs.push(reflections[r++]);
+while(uniqueParagraphs.join(" ").trim().split(/\s+/).filter(Boolean).length<1000){
+ uniqueParagraphs.push(reflections[r++%reflections.length]+" Scene note "+(r+1)+": "+hero+" kept the next consequence in view, rather than treating this moment as the whole story.");
 }
-let text=uniqueParagraphs.join("\\n\\n");
+let text=uniqueParagraphs.join("\n\n");
 return {number:n,title:chapterName,text,wordCount:text.trim().split(/\\s+/).filter(Boolean).length};
 }
 function render(){let b=state.book;if(!b)return;let out=$("output"),chapters=b.chapters;
