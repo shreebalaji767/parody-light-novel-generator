@@ -232,7 +232,7 @@ function themeKey(genre){const key=String(genre||"").split("::")[0];return theme
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function settings(){let genreOptions=[...$("genre").selectedOptions];let genres=genreOptions.map(o=>o.text);let genre=genreOptions.length?genreOptions[0].value:"isekai";if(!genres.length)genres=["Isekai / Reincarnation"];let tones=[...$("tone").selectedOptions].map(o=>o.value);if(!tones.length)tones=["Adventurous"];let tags=[...$("tags").selectedOptions].map(o=>o.text);let n=Number($("chapters").value);if(!Number.isFinite(n))n=1;n=Math.max(1,Math.min(10000,Math.floor(n)));$("chapters").value=n;return {genre,genres,total:n,styleIntensity:Number($("parody").value),tone:tones[0],tones,tags,parodyMode:$("parodyMode").value,parodySource:$("parodySource").value.trim(),parodySources:$("parodySource").value.split(/[\n;,]+/).map(x=>x.trim()).filter(Boolean),title:$("title").value.trim(),premise:$("premise").value.trim(),hero:$("hero").value.trim()||"the protagonist",batch:n}}
 function createBook(s){let key=themeKey(s.genre),t=themes[key],title=s.title||choose(titles[key]);let premise=s.premise||s.hero+" finds themselves in "+choose(t.world)+", determined to "+choose(t.goals)+".";
-return {settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),chapters:[],created:new Date().toISOString()}}
+return {settings:s,title,premise,world:choose(t.world),role:choose(t.roles),goal:choose(t.goals),foe:choose(t.foes),place:choose(t.places),seed:(Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)),chapters:[],created:new Date().toISOString()}}
 function chapterTitle(b,n){
  const base=["A Door Left Open","The Price of a Promise","A Stranger's Warning","The First Setback","An Unlikely Ally","The Hidden Cost","A Choice at Dusk","The Road Divides","The Truth Emerges","Beyond the Horizon","A Plan in Motion","The Quiet Before","The Name We Forgot","A Debt Repaid","The Long Way Home","The Last Safe Place","A Change of Heart","The Missing Piece","When the Lights Go Out","A New Beginning"];
  const intensity=(Number(b.settings.styleIntensity??b.settings.parody)||0)/100;
@@ -242,62 +242,117 @@ function chapterTitle(b,n){
  return title+" — "+n;
 }
 function generateChapter(b,n){
- const s=b.settings, style=Math.max(0,Math.min(1,(Number(s.styleIntensity??s.parody)||0)/100));
- const hero=s.hero||"the protagonist", world=b.world, goal=b.goal, foe=b.foe, place=b.place;
-
- const chapterName=chapterTitle(b,n), theme=themeKey(s.genre);
+ const s=b.settings||{},style=Math.max(0,Math.min(1,(Number(s.styleIntensity??s.parody)||0)/100));
+ const hero=s.hero||"the protagonist",world=b.world||"the wider world",goal=b.goal||"discover the truth",foe=b.foe||"the opposition",place=b.place||"the next destination",theme=themeKey(s.genre);
+ const seedText=String(b.seed||b.created||b.title||"novelforge")+"|chapter|"+n;
+ let seed=2166136261;for(let i=0;i<seedText.length;i++){seed^=seedText.charCodeAt(i);seed=Math.imul(seed,16777619);}
+ const random=()=>{seed+=0x6D2B79F5;let t=seed;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};
+ const pick=list=>list[Math.floor(random()*list.length)];
+ const prior=(b.chapters||[]),previous=prior.length?prior[prior.length-1]:null;
+ const profiles=Array.isArray(b.characters)?b.characters:[];
+ const supporting=profiles.filter(c=>c&&c.name&&c.name!==hero);
+ const ally=supporting.length?pick(supporting).name:pick(["the old companion","the quick-witted guide","the reluctant ally","the quiet apprentice","the masked stranger"]);
+ const chapterName=chapterTitle(b,n);
+ const atmosphere={
+  isekai:["mana prickled against the skin","the quest board rattled in the wind","a spell-circle glowed beneath the floor","the guild bell rang at the worst possible moment"],
+  fantasy:["old magic stirred beneath the stones","a distant horn rolled across the valley","the runes warmed under the moonlight","the forest seemed to remember every footstep"],
+  romance:["rain traced silver lines across the window","the festival lights blurred in the evening air","a familiar song drifted from the next street","the pause between words felt unusually important"],
+  action:["the arena lights snapped into focus","boots struck the training floor in sharp rhythm","the crowd rose as the gates opened","the warning siren cut through the noise"],
+  school:["the final bell echoed through the corridor","club posters fluttered beside the noticeboard","the classroom smelled of chalk and rain","someone had left a mysterious note in the shoe lockers"],
+  scifi:["the station's artificial dawn flickered","warning glyphs crawled across the console","the ship vibrated as its engines changed pitch","starlight slid over the observation glass"],
+  horror:["the hallway light blinked twice","something moved behind the wallpaper","the air carried the smell of wet earth","a second set of footsteps stopped when theirs did"],
+  comedy:["the emergency notice had three spelling mistakes","the committee had formed a subcommittee","someone had brought a ceremonial spoon","the official plan was already upside down"],
+  cozy:["fresh bread cooled near the open window","the market awnings rustled in the breeze","warm lamplight filled the little shop","someone left flowers on the doorstep"],
+  mixed:["two incompatible laws of reality briefly overlapped","a doorway opened onto the wrong season","the sky displayed a map no one recognized","a familiar object behaved as if it belonged to another world"]
+ };
+ const obstacles={
+  isekai:["the guild clerk demanded a form that had not been invented yet","a rival party claimed the same contract","the spell required a payment nobody had mentioned","the route was blocked by a creature that wanted to negotiate"],
+  fantasy:["the bridge keeper refused passage without a forgotten name","the old ward recognized the wrong heir","the map contradicted the stars","a sworn oath prevented the obvious solution"],
+  romance:["an honest conversation was interrupted by an old misunderstanding","a well-meant surprise revealed the wrong secret","both arrived with something important to say and neither began","the invitation was mistaken for a goodbye"],
+  action:["the opponent changed tactics halfway through the match","the arena floor shifted beneath their feet","the team disagreed over who should take the risk","a rule designed to protect rookies became the greatest obstacle"],
+  school:["the rival club had reserved the only available room","a rumor reached the wrong person first","the event budget was missing","the teacher assigned partners without asking"],
+  scifi:["the navigation system returned two different destinations","a power relay failed at the worst moment","the signal carried a command in the captain's own voice","the airlock log showed an opening no one remembered"],
+  horror:["the exit appeared farther away each time they looked","a voice repeated a sentence spoken hours earlier","the locked room contained fresh footprints","the safest person in the room knew too much"],
+  comedy:["the official instructions contradicted the official exception","the only expert was confidently incorrect","the key had been labeled with the wrong door","the solution required asking the person everyone had ignored"],
+  cozy:["the delivery arrived with one crucial ingredient missing","two neighbors remembered the same event differently","the storm threatened the community gathering","the old recipe had a step nobody could translate"],
+  mixed:["the rules changed whenever someone tried to explain them","a duplicate arrived with a different memory","the doorway demanded a destination that no longer existed","the solution worked in one world and failed in the next"]
+ };
+ const stakes={
+  isekai:["the contract could cost the guild its independence","someone innocent would be blamed if the truth stayed hidden","the next rank examination depended on this decision"],
+  fantasy:["the valley would lose its protection before the next moon","an old promise bound more lives than anyone knew","the crown was less important than the people beneath it"],
+  romance:["silence might become a choice neither could undo","the friendship mattered more than winning the argument","one small truth could change the shape of their future"],
+  action:["the team could lose its place in the tournament","the result would decide who controlled the training hall","a teammate's confidence was hanging by a thread"],
+  school:["the club could be dissolved after the festival","someone's future depended on being heard","the truth could repair—or end—a friendship"],
+  scifi:["the station's life support had limited reserves","the signal could expose the colony's location","one wrong jump could strand the crew beyond rescue"],
+  horror:["the missing residents might still be alive","the house had begun learning their habits","leaving without an answer could bring the danger home"],
+  comedy:["the entire town was about to vote on the wrong problem","a harmless mistake had become an official tradition","the prize was ridiculous but the consequences were real"],
+  cozy:["the shop might close before the season changed","the community needed a reason to trust one another","a cherished place could disappear beneath new plans"],
+  mixed:["the boundary between worlds was becoming unstable","a choice in this place would echo in another","the only witness remembered a different version of events"]
+ };
+ const sensory=pick(atmosphere[theme]||atmosphere.mixed),obstacle=pick(obstacles[theme]||obstacles.mixed),stake=pick(stakes[theme]||stakes.mixed);
  const openings=[
-  hero+" had expected "+(theme==="romance"?"a quiet moment":theme==="horror"?"something unsettling":"an ordinary day")+". Instead, "+place+" was already in chaos.",
-  "The first warning arrived before sunrise. "+hero+" heard it from the far side of "+place+" and knew that ignoring it would be a mistake.",
-  "There were three things "+hero+" knew: "+goal+", the situation had changed, and "+place+" held a clue nobody had noticed.",
-  "The journey had barely begun when "+hero+" discovered that the map was wrong. The destination was still there, but the road leading to it had vanished."
+  "By the time "+hero+" reached "+place+", "+sensory+". It should have been a small detail. Instead, it was the first sign that the day had gone off course.",
+  "The trouble began with a question nobody wanted to answer. "+hero+" found the others waiting at "+place+", each carrying a different version of what had happened.",
+  "There was a moment, just before everything changed, when the world seemed ordinary. "+hero+" remembered it clearly because nothing afterward would feel quite the same.",
+  "The message arrived without a signature. It contained only a place, a time, and a warning: do not bring anyone you cannot afford to lose."
  ];
- const scenes=[
-  "A narrow path led away from the crowd. "+hero+" followed it, keeping an eye on the details others had dismissed. The silence felt deliberate.",
-  "The evidence was scattered across the room: a damaged seal, a hurried note, and a footprint that stopped at the wall. None of it made sense alone.",
-  "The stranger did not answer immediately. Instead, they placed a small object on the table and watched "+hero+" recognize its significance.",
-  "A sudden commotion interrupted the discussion. "+hero+" moved before anyone else could react, and the choice exposed a danger hidden in plain sight."
+ const discoveries=[
+  "Behind the damaged panel, "+hero+" found a mark matching the one recorded in the earlier notes. The connection was too exact to dismiss, but it raised a harder question: who had known to leave it there?",
+  "The evidence did not point toward a single culprit. It showed a chain of small decisions, each reasonable on its own, that had led everyone to the same dangerous place.",
+  ally+" noticed what the others had missed: the dust was undisturbed beneath the object, meaning it had been placed there recently. The clue was not old history. Someone was still shaping the scene.",
+  "A witness finally spoke. Their account was incomplete, but one detail remained consistent: the person responsible had been trying to prevent something even worse."
  ];
- const dialogue=[
-  ["“What are you leaving out?” "+hero+" asked.","“The part that would make you turn back.”","“Try me.”"],
-  ["“We have two choices,” someone said.","“Then tell me the cost of each.” "+hero+" replied."],
-  ["“You came all this way for an answer?”","“No,” "+hero+" said. “I came because the question matters.”"],
-  ["“This could go wrong.”","“It already has. Now we decide what happens next.”"]
+ const dialogueSets=[
+  ["“You keep saying this is the only way,” "+hero+" said. “Who decided that?”","“The people who ran out of better choices,” "+ally+" replied.","“Then we make a better choice.”"],
+  ["“Tell me what you actually saw.”","“I saw enough to know we are late.”","“Late is not the same as defeated,” "+hero+" said."],
+  ["“If we do this, there is no easy return.”","“There was never an easy return.” "+hero+" looked at "+ally+". “There is still a right one.”"],
+  ["“You trust them?” someone asked.","“Not yet,” "+hero+" answered. “But I trust what they did when nobody was watching.”"]
  ];
- const consequences=[
-  "The decision changed the balance between "+hero+" and "+foe+". Neither side could pretend the conflict was distant anymore.",
-  "By choosing to act, "+hero+" put someone else at risk. That fact weighed more heavily than the danger itself.",
-  "The discovery brought relief, but also a new obligation. "+goal+" could no longer be pursued without confronting the consequences.",
-  "A small victory revealed the scale of the problem. The next step would require trust from people who had every reason to refuse."
+ const reversals=[
+  "The apparent enemy was protecting the very person everyone had come to accuse.",
+  "The key evidence had been genuine, but its date had been changed. The event was not a warning from the past; it was a message from someone nearby.",
+  "The plan succeeded exactly as written—and revealed that the plan itself had been anticipated.",
+  "The person who offered help had no intention of betraying them. They were hiding a different truth, one that made the situation more complicated."
+ ];
+ const outcomes=[
+  "The immediate danger passed, but the cost was visible. "+hero+" had gained a lead and lost the comfort of believing the problem was simple.",
+  "They reached an agreement, not because everyone trusted one another, but because each understood what failure would take away.",
+  "The discovery changed the next step. Instead of pursuing "+goal+", they would first have to learn why "+foe+" seemed determined to keep the truth buried.",
+  "No victory announcement followed. There was only the work of repairing what had been damaged and deciding who would be told."
  ];
  const humor=[
-  "The timing was so poor that even the clock seemed embarrassed.",
-  "For one brief moment, everyone agreed. It was immediately followed by an argument about what they had agreed to.",
-  "The plan had one advantage: nobody had yet thought of a worse one.",
-  "A remarkably confident explanation followed. It answered a question nobody had asked."
+  "It was, by every available measure, a terrible plan. Unfortunately, it was also the best one on the table.",
+  "Nobody volunteered to explain the situation. The silence lasted until someone asked whether snacks were included.",
+  "The plan acquired three extra steps, two warnings, and one entirely unnecessary committee."
  ];
+ const chapterBeat=n===1?"beginning":n===s.total?"finale":n%5===0?"turning point":n%3===0?"complication":"development";
  let paragraphs=[
-  openings[(n-1)%openings.length],
-  scenes[(n-1)%scenes.length],
-  dialogue[(n-1)%dialogue.length].join(" "),
-  consequences[(n-1)%consequences.length]
+  pick(openings),
+  hero+" had come here to "+goal+". That purpose had once seemed clear. Now every new fact added another condition, and every condition made the choice harder.",
+  pick(discoveries),
+  "The obstacle was immediate: "+obstacle+". "+ally+" suggested taking the safer route, while "+hero+" could see what waiting would cost. "+stake+".",
+  pick(dialogueSets),
+  "They tested the first explanation instead of accepting it. One detail held; another failed. When the pieces were rearranged, a different possibility emerged: "+pick(reversals),
+  "For a few seconds nobody moved. Then "+hero+" chose a course that protected the people involved without pretending the danger had disappeared. The decision was imperfect, but it belonged to them.",
+  pick(outcomes)
  ];
- if(style>.35) paragraphs.push(humor[(n-1)%humor.length]);
- paragraphs.push(hero+" looked toward "+place+" and considered what the evidence actually proved. The answer was not as comforting as the first explanation. "+foe+" had made a move, and the consequences would reach farther than this single encounter.");
- paragraphs.push("“Then we do it carefully,” "+hero+" said. The group began to prepare: checking supplies, dividing responsibilities, and agreeing on a signal if anything went wrong. Nobody called it a perfect plan. That was precisely why it might work.");
- paragraphs.push("The first obstacle arrived sooner than expected. A locked passage forced them to reconsider their route, and the delay gave the opposition time to act. "+hero+" spotted a detail that changed the choice before them. They could continue as planned—or protect the person who had been left behind.");
- paragraphs.push("The decision was made without a speech. "+hero+" turned back, helped the stranded ally, and accepted the cost. When they finally reached the next landmark, the group was smaller in supplies but stronger in trust. The goal remained difficult; at least now, they understood what they were willing to risk for it.");
- if(n===s.total) paragraphs.push("At the end of the journey, "+hero+" faced the final consequence of the choices made along the way. The answer was not simple, but it was theirs. As the dust settled, a new possibility appeared—one that could begin only after this chapter had truly ended.");
- else if(n%Math.max(5,Math.floor(s.total/10))===0) paragraphs.push("Far beyond "+place+", a message arrived bearing a name "+hero+" had hoped never to see again. The next stage of the journey had already begun.");
- else paragraphs.push("That evening, "+hero+" recorded what had been learned and what remained uncertain. Tomorrow would bring another decision. For now, they had earned a few hours of rest.");
- const extensions=[
-  "Before leaving, "+hero+" checked the note once more. A phrase that had seemed ordinary now carried a second meaning. They copied it carefully, determined not to let another small clue disappear.",
-  "The others were quiet as they walked. Trust did not arrive all at once; it grew through choices that could be observed and remembered. "+hero+" understood that the next promise would have to be earned.",
-  "A cold wind moved through the passage. "+hero+" thought about the people waiting at the destination and the explanation they would need. A victory without an honest account would only create another problem.",
-  "They reviewed the plan one final time. Each person knew where to go, what to look for, and when to retreat. It was a modest arrangement, but it left room to adapt when reality refused to cooperate.",
-  "At the edge of the settlement, "+hero+" noticed a familiar mark carved into the stone. It connected this place to an earlier discovery—and suggested that the mystery had been unfolding for much longer than anyone suspected."
+ if(style>.25)paragraphs.splice(5,0,pick(humor));
+ if(previous){
+  paragraphs.splice(2,0,"The previous chapter had ended with “"+String(previous.title||"an unfinished question").replace(/[“”"]/g,"")+".” Its consequences had followed them here; "+hero+" could no longer treat the earlier choice as something safely in the past.");
+ }
+ if(chapterBeat==="turning point")paragraphs.push("The pattern finally became visible. What had looked like separate incidents were connected by a single decision made long before the present conflict. The next move would expose who benefited from keeping that connection hidden.");
+ else if(chapterBeat==="complication")paragraphs.push("A second problem surfaced before they could celebrate. It did not erase what they had achieved, but it forced everyone to reconsider the assumptions behind their plan.");
+ else if(chapterBeat==="finale")paragraphs.push("Every promise, mistake, and act of courage had led to this moment. "+hero+" faced "+foe+" with a clearer understanding of what had to be protected. The final choice did not make the past disappear; it gave the future a direction.");
+ else if(chapterBeat==="beginning")paragraphs.push("At the edge of the known road, "+hero+" made one promise: whatever happened next, the truth would not be abandoned simply because it was inconvenient.");
+ else paragraphs.push("Later, when the noise had faded, "+hero+" wrote down the details that mattered: what was learned, what remained uncertain, and which promise would have to be kept. The next step was already taking shape.");
+ const closings=[
+  "Somewhere beyond "+place+", a light appeared where no settlement was marked.",
+  "A familiar name arrived in an unfamiliar message. "+hero+" recognized the handwriting before reading the words.",
+  "The answer had opened another question, and this time the question was personal.",
+  "As they left, "+ally+" noticed that the mark on the wall had changed. Someone—or something—was keeping pace.",
+  "For the first time that day, "+hero+" felt certain about one thing: the next choice would matter even more."
  ];
- for(let i=0;i<2;i++) paragraphs.push(extensions[(n+i)%extensions.length]);
+ paragraphs.push(pick(closings));
  const text=paragraphs.join("\n\n");
  return {number:n,title:chapterName,text,wordCount:text.trim().split(/\s+/).filter(Boolean).length};
 }
