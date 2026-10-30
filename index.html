@@ -106,9 +106,9 @@ if(n===s.total)paragraphs.push("At last, the journey reached its conclusion. "+h
 else if(n%Math.max(5,Math.floor(s.total/10))===0)paragraphs.push("But beyond "+place+", a new mystery stirred—one that would challenge everything "+hero+" thought they knew.");
 else paragraphs.push(choose(["And somewhere nearby, trouble was already making its next move.","The day was far from over.","For now, at least, the world held its breath."]));
 // Use a one-time, chapter-specific scene progression. Never cycle the same paragraph to pad length.
-let wordCount=()=>paragraphs.join(" ").trim().split(/\\s+/).filter(Boolean).length;
+let wordCount=()=>paragraphs.join(" ").trim().split(/\s+/).filter(Boolean).length;
 let sceneIndex=0;
-while(wordCount()<850){
+while(wordCount()<1000){
  let scene=beats[sceneIndex%beats.length];
  let chapterVariation=" In chapter "+n+", "+hero+" considered the next move from a different angle: "+choose([
  "the clue could be a warning rather than an invitation.",
@@ -135,7 +135,7 @@ while(uniqueParagraphs.join(" ").trim().split(/\s+/).filter(Boolean).length<1000
  uniqueParagraphs.push(reflections[r++%reflections.length]+" Scene note "+(r+1)+": "+hero+" kept the next consequence in view, rather than treating this moment as the whole story.");
 }
 let text=uniqueParagraphs.join("\n\n");
-return {number:n,title:chapterName,text,wordCount:text.trim().split(/\\s+/).filter(Boolean).length};
+return {number:n,title:chapterName,text,wordCount:text.trim().split(/\s+/).filter(Boolean).length};
 }
 function render(){let b=state.book;if(!b)return;let out=$("output"),chapters=b.chapters;
 let done=chapters.length,percent=Math.round(done/b.settings.total*100);
