@@ -1,0 +1,18 @@
+{
+  "name": "NovelForge — Light Novel Generator",
+  "short_name": "NovelForge",
+  "description": "Free browser-based light novel and parody generator.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101117",
+  "theme_color": "#171923",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
